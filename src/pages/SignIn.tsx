@@ -1,20 +1,49 @@
 import { useActionState } from "react";
 
+import { api } from "../services/api";
+
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
-import { email } from "zod";
+import { z, ZodError } from "zod";
+import { AxiosError } from "axios";
+
+const signInSchema = z.object({
+  email: z.email({ message: "Invalid email address" }),
+  password: z
+    .string()
+    .trim()
+    .min(6, { message: "Password must be at least 6 characters" }),
+});
 
 export function SignIn() {
-  const [state, formAction, isLoading] = useActionState(signIn, {
-    email: "",
-    password: "",
-  });
+  const [state, formAction, isLoading] = useActionState(signIn, null);
 
-  function signIn(prevState: any, formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+  async function signIn(_: any, formData: FormData) {
+    try {
+      const data = signInSchema.parse({
+        email: formData.get("email"),
+        password: formData.get("password"),
+      });
 
-    return { email, password };
+      const response = await api.post("/sessions", data);
+      console.log("Sign-in successful:", response.data);
+    } catch (error) {
+      console.error("Validation error:", error);
+
+      if (error instanceof ZodError) {
+        return { message: error.issues[0].message };
+      }
+
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          return { message: error.response.data.message || "Sign-in failed." };
+        } else {
+          return { message: "Network error. Please try again." };
+        }
+      }
+
+      return { message: "An unexpected error occurred." };
+    }
   }
 
   return (
@@ -25,7 +54,6 @@ export function SignIn() {
         legend="E-mail"
         type="email"
         placeholder="your@email.com"
-        defaultValue={String(state?.email)}
       />
 
       <Input
@@ -34,8 +62,14 @@ export function SignIn() {
         legend="Password"
         type="password"
         placeholder="123456"
-        defaultValue={String(state?.password)}
       />
+
+      <p
+        className="text-sm text-red-600 text-center my-4 font-medium"
+        hidden={!state?.message}
+      >
+        {state?.message}
+      </p>
 
       <Button type="submit" isLoading={isLoading}>
         Sign-in
