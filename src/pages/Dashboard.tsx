@@ -4,7 +4,7 @@ import searchSvg from "../assets/search.svg";
 
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
-import { RefundItem } from "../components/RefundItem";
+import { RefundItem, type RefundItemProps } from "../components/RefundItem";
 import { CATEGORIES } from "../utils/categories";
 import { formatCurrency } from "../utils/formatCurrency";
 import Pagination from "../components/Pagination";
@@ -21,6 +21,7 @@ export function Dashboard() {
   const [name, setName] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(10);
+  const [refunds, setRefunds] = useState<RefundItemProps[]>([REFUND_EXAMPLE]);
 
   function fetchRefunds(e: React.FormEvent) {
     e.preventDefault();
@@ -60,8 +61,14 @@ export function Dashboard() {
         </Button>
       </form>
 
-      <div className="mt-6 flex flex-col gap-4 max-h-[342px] overflow-y-scroll">
-        <RefundItem data={REFUND_EXAMPLE} />
+      <div className="my-6 flex flex-col gap-4 max-h-[342px] overflow-y-scroll">
+        {refunds.map((refund) => (
+          <RefundItem
+            key={refund.id}
+            data={refund}
+            href={`/refund/${refund.id}`}
+          />
+        ))}
       </div>
 
       <Pagination
