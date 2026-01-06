@@ -1,16 +1,53 @@
 import { useState } from "react";
+import { set, z, ZodError } from "zod";
+
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
+
+const signUpFormSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required"),
+    email: z.email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+    passwordConfirmation: z
+      .string()
+      .min(6, "Password confirmation must be at least 6 characters long"),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    message: "Passwords do not match",
+    path: ["passwordConfirmation"],
+  });
 
 export function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    try {
+      setIsLoading(true);
+
+      const data = signUpFormSchema.parse({
+        name,
+        email,
+        password,
+        passwordConfirmation,
+      });
+
+      console.log("Form data is valid:", data);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return alert(`Validation errors: ${error.issues[0].message}`);
+      }
+
+      alert("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -43,7 +80,7 @@ export function SignUp() {
         legend="Confirm Password"
         type="password"
         placeholder="123456"
-        onChange={(e) => setConfirmPassword(e.target.value)}
+        onChange={(e) => setPasswordConfirmation(e.target.value)}
       />
 
       <Button type="submit" isLoading={isLoading}>
