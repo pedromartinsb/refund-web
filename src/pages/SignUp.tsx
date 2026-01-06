@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { set, z, ZodError } from "zod";
+import { z, ZodError } from "zod";
+import { AxiosError } from "axios";
+import { useNavigate } from "react-router";
+
+import { api } from "../services/api";
 
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
@@ -25,7 +29,9 @@ export function SignUp() {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  function onSubmit(e: React.FormEvent) {
+  const navigate = useNavigate();
+
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
@@ -38,13 +44,27 @@ export function SignUp() {
         passwordConfirmation,
       });
 
-      console.log("Form data is valid:", data);
+      await api.post("/users", data);
+
+      if (
+        confirm(
+          "User created successfully. Do you want to go to the login page?"
+        )
+      ) {
+        navigate("/");
+      }
     } catch (error) {
       if (error instanceof ZodError) {
         return alert(`Validation errors: ${error.issues[0].message}`);
       }
 
-      alert("An unexpected error occurred. Please try again.");
+      if (error instanceof AxiosError) {
+        return alert(
+          `Error: ${error.response?.data.message || "Could not create user."}`
+        );
+      }
+
+      if (error) alert("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

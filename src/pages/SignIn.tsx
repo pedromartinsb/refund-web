@@ -1,26 +1,41 @@
-import { useState } from "react";
+import { useActionState } from "react";
+
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
+import { email } from "zod";
 
 export function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [state, formAction, isLoading] = useActionState(signIn, {
+    email: "",
+    password: "",
+  });
 
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function signIn(prevState: any, formData: FormData) {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    return { email, password };
   }
 
   return (
-    <form onSubmit={onSubmit} className="w-full flex flex-col gap-4">
+    <form action={formAction} className="w-full flex flex-col gap-4">
       <Input
         required
+        name="email"
         legend="E-mail"
         type="email"
         placeholder="your@email.com"
+        defaultValue={String(state?.email)}
       />
 
-      <Input required legend="Password" type="password" placeholder="123456" />
+      <Input
+        required
+        name="password"
+        legend="Password"
+        type="password"
+        placeholder="123456"
+        defaultValue={String(state?.password)}
+      />
 
       <Button type="submit" isLoading={isLoading}>
         Sign-in
