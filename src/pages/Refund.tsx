@@ -13,7 +13,6 @@ import { AxiosError } from "axios";
 
 const refundSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  // amount: z.string().regex(/^\d+(\.\d{2})?$/, "Valor inválido"),
   amount: z.coerce.number().positive("O valor deve ser positivo"),
   category: z.enum(CATEGORIES_KEY),
 });
@@ -23,7 +22,7 @@ export function Refund() {
   const [amount, setAmount] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [filename, setFilename] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
 
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
@@ -38,6 +37,20 @@ export function Refund() {
     try {
       setIsLoading(true);
 
+      if (!file) {
+        alert("Por favor, envie um comprovante.");
+        return;
+      }
+
+      const fileFormData = new FormData();
+      fileFormData.append("file", file);
+
+      const fileUploadResponse = await api.post("/upload", fileFormData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       const data = refundSchema.parse({
         name,
         amount: parseFloat(amount.replace(",", ".")),
@@ -46,7 +59,7 @@ export function Refund() {
 
       await api.post("/refunds", {
         ...data,
-        filename: "29081387138791287328371923.png",
+        filename: fileUploadResponse.data.filename,
       });
 
       navigate("/confirm", {
@@ -125,8 +138,8 @@ export function Refund() {
         </a>
       ) : (
         <Upload
-          filename={filename && filename.name}
-          onChange={(e) => e.target.files && setFilename(e.target.files[0])}
+          filename={file && file.name}
+          onChange={(e) => e.target.files && setFile(e.target.files[0])}
         />
       )}
 
