@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
+import { api } from "../services/api";
 import fileSvg from "../assets/file.svg";
 import { CATEGORIES, CATEGORIES_KEY } from "../utils/categories";
 import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { Upload } from "../components/Upload";
 import { Button } from "../components/Button";
-import z, { set } from "zod";
+import z from "zod";
+import { AxiosError } from "axios";
 
 const refundSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -26,7 +28,7 @@ export function Refund() {
   const navigate = useNavigate();
   const params = useParams<{ id: string }>();
 
-  function onSubmit(event: React.FormEvent) {
+  async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
 
     if (params.id) {
@@ -42,15 +44,24 @@ export function Refund() {
         category,
       });
 
+      await api.post("/refunds", {
+        ...data,
+        filename: "29081387138791287328371923.png",
+      });
+
       navigate("/confirm", {
         state: { fromSubmit: true },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         alert(error.issues[0].message);
-      } else {
-        alert("Erro ao enviar solicitação de reembolso.");
       }
+
+      if (error instanceof AxiosError) {
+        alert(error.response?.data.message || "Erro na solicitação.");
+      }
+
+      alert("Erro ao enviar solicitação de reembolso.");
     } finally {
       setIsLoading(false);
     }
