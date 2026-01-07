@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import searchSvg from "../assets/search.svg";
 
@@ -8,25 +8,48 @@ import { RefundItem, type RefundItemProps } from "../components/RefundItem";
 import { CATEGORIES } from "../utils/categories";
 import { formatCurrency } from "../utils/formatCurrency";
 import Pagination from "../components/Pagination";
+import { api } from "../services/api";
+import { AxiosError } from "axios";
+import type { RefundsPaginationAPIResponse } from "../dtos/refund";
 
-const REFUND_EXAMPLE = {
-  id: "1",
-  name: "João Silva",
-  category: "Alimentação",
-  amount: formatCurrency(150.34),
-  categoryImg: CATEGORIES["transport"].icon,
-};
+const PER_PAGE = 5;
 
 export function Dashboard() {
   const [name, setName] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(10);
-  const [refunds, setRefunds] = useState<RefundItemProps[]>([REFUND_EXAMPLE]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [refunds, setRefunds] = useState<RefundItemProps[]>([]);
 
-  function fetchRefunds(e: React.FormEvent) {
-    e.preventDefault();
+  async function fetchRefunds() {
+    try {
+      const response = await api.get<RefundsPaginationAPIResponse>(
+        `/refunds?name=${name.trim()}&page=${page}&perPage=${PER_PAGE}`
+      );
 
-    console.log(name);
+      setRefunds(
+        response.data.refunds.map((refund) => ({
+          id: refund.id,
+          name: refund.user.name,
+          description: refund.name,
+          amount: formatCurrency(refund.amount),
+          categoryImg: CATEGORIES[refund.category].icon,
+        }))
+      );
+
+      setTotalPages(response.data.pagination.totalPages);
+    } catch (error) {
+      console.error("Error fetching refunds:", error);
+
+      if (error instanceof AxiosError) {
+        return alert(
+          `Erro ao buscar reembolsos: ${
+            error.response?.data.message || error.message
+          }`
+        );
+      }
+
+      return;
+    }
   }
 
   function handlePagination(action: "next" | "previous") {
@@ -42,6 +65,10 @@ export function Dashboard() {
       return prevPage;
     });
   }
+
+  useEffect(() => {
+    fetchRefunds();
+  }, [page]);
 
   return (
     <div className="bg-gray-500 rounded-xl p-10 md:min-w-3xl">
