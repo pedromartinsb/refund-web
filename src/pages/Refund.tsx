@@ -7,6 +7,14 @@ import { Input } from "../components/Input";
 import { Select } from "../components/Select";
 import { Upload } from "../components/Upload";
 import { Button } from "../components/Button";
+import z, { set } from "zod";
+
+const refundSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  // amount: z.string().regex(/^\d+(\.\d{2})?$/, "Valor inválido"),
+  amount: z.coerce.number().positive("O valor deve ser positivo"),
+  category: z.enum(CATEGORIES_KEY),
+});
 
 export function Refund() {
   const [name, setName] = useState<string>("");
@@ -25,15 +33,33 @@ export function Refund() {
       return navigate(-1);
     }
 
-    navigate("/confirm", {
-      state: { fromSubmit: true },
-    });
+    try {
+      setIsLoading(true);
+
+      const data = refundSchema.parse({
+        name,
+        amount: parseFloat(amount.replace(",", ".")),
+        category,
+      });
+
+      navigate("/confirm", {
+        state: { fromSubmit: true },
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        alert(error.issues[0].message);
+      } else {
+        alert("Erro ao enviar solicitação de reembolso.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-w-[512px]"
+      className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-w-lg"
     >
       <header>
         <h1 className="text-xl font-bold text-gray-100">
