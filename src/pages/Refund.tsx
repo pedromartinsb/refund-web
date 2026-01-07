@@ -45,11 +45,7 @@ export function Refund() {
       const fileFormData = new FormData();
       fileFormData.append("file", file);
 
-      const fileUploadResponse = await api.post("/upload", fileFormData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const fileUploadResponse = await api.post("/uploads", fileFormData);
 
       const data = refundSchema.parse({
         name,
