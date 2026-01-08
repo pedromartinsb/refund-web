@@ -104,14 +104,14 @@ export function SignUp() {
       />
 
       <Button type="submit" isLoading={isLoading}>
-        Cadastrar
+        Sign-up
       </Button>
 
       <a
-        href="/sign-up"
-        className="text-sm font-semibold text-gray-100 mt-10 mb-4 text-center hover:text-green-800 transition ease-linear"
+        href="/"
+        className="text-sm font-semibold text-gray-100 my-4 text-center hover:text-green-800 transition ease-linear"
       >
-        Já tenho uma Conta
+        Already have an account? Sign-in
       </a>
     </form>
   );

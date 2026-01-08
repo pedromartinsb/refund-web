@@ -80,9 +80,9 @@ export function SignIn() {
 
       <a
         href="/sign-up"
-        className="text-sm font-semibold text-gray-100 mt-10 mb-4 text-center hover:text-green-800 transition ease-linear"
+        className="text-sm font-semibold text-gray-100 my-4 text-center hover:text-green-800 transition ease-linear"
       >
-        Criar Conta
+        Create Account
       </a>
     </form>
   );
