@@ -1,4 +1,4 @@
-type RefundAPIResponse = {
+export type RefundAPIResponse = {
   id: string;
   userId: string;
   name: string;
@@ -10,7 +10,7 @@ type RefundAPIResponse = {
   };
 };
 
-type RefundsPaginationAPIResponse = {
+export type RefundsPaginationAPIResponse = {
   refunds: RefundAPIResponse[];
   pagination: {
     page: number;
@@ -19,5 +19,3 @@ type RefundsPaginationAPIResponse = {
     totalPages: number;
   };
 };
-
-export { RefundAPIResponse, RefundsPaginationAPIResponse };
